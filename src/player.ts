@@ -1,19 +1,22 @@
 import { Container, Sprite } from 'pixi.js';
 import { getTexture } from '@/spritesheet';
-import { Collidable } from './collisions';
+import { Collidable, CollisionsManager } from './collisions';
 
 type DestroyHandler = (id: ReturnType<typeof crypto.randomUUID>) => void;
 
 export class Player implements Collidable {
+  id = crypto.randomUUID();
   type = 'player' as const;
   sprite = new Sprite(getTexture('player'));
   bullets: Bullet[] = [];
 
   #lastShotTime = 0;
+  #handleDelete: (id: string) => void;
 
   constructor(private scene: Container) {
     this.sprite.scale.set(16);
     this.sprite.y += 100;
+    this.#handleDelete = CollisionsManager.instance.register(this);
   }
 
   update(deltaTime: number) {
@@ -39,10 +42,8 @@ export class Player implements Collidable {
     this.bullets.push(bullet);
   }
 
-  collide(other: Collidable) {
-    if (other.type === 'enemy') {
-      alert('Got hit');
-    }
+  takeDamage() {
+    this.#handleDelete(this.id);
   }
 }
 
@@ -50,6 +51,7 @@ class Bullet implements Collidable {
   type = 'bullet' as const;
   id = crypto.randomUUID();
   sprite = new Sprite(getTexture('bullet'));
+  #handleDelete: (id: string) => void;
 
   constructor(
     private scene: Container,
@@ -57,18 +59,16 @@ class Bullet implements Collidable {
   ) {
     this.sprite.scale.set(16);
     this.scene.addChild(this.sprite);
+    this.#handleDelete = CollisionsManager.instance.register(this);
   }
 
   update(deltaTime: number) {
     this.sprite.x += deltaTime * 10;
   }
 
-  destroy() {
+  takeDamage() {
     this.sprite.destroy();
     this.onDestroy(this.id);
-  }
-
-  collide(other: Collidable) {
-    throw new Error('Not implemented!');
+    this.#handleDelete(this.id);
   }
 }

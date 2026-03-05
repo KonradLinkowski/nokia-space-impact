@@ -1,9 +1,10 @@
 import { Application, ColorMatrixFilter } from 'pixi.js';
 import { bindKeyboard } from './keyboard';
-import { createStatus } from './status';
+import { Status } from './status';
 import { preload } from './spritesheet';
 import { Player } from './player';
-import { Medusa } from './enemies/medusa';
+import { EnemySpawner } from './enemies/enemy';
+import { CollisionsManager } from './collisions';
 
 (async () => {
   // Create a new application
@@ -17,15 +18,13 @@ import { Medusa } from './enemies/medusa';
 
   await preload();
 
-  const status = await createStatus();
+  const status = new Status(app.stage);
+
+  status.loseHealth(1);
 
   const player = new Player(app.stage);
-  const sprite1 = new Medusa();
-  sprite1.sprite.x += 1020;
-  sprite1.sprite.y += 330;
 
-  const sprite2 = new Medusa();
-  sprite2.sprite.x += 1020;
+  const spawner = new EnemySpawner(app.stage);
 
   const keys = bindKeyboard();
 
@@ -35,18 +34,19 @@ import { Medusa } from './enemies/medusa';
   // Append the application canvas to the document body
   document.getElementById('pixi-container')!.appendChild(app.canvas);
 
-  app.stage.addChild(sprite1.sprite);
-  app.stage.addChild(sprite2.sprite);
   app.stage.addChild(player.sprite);
-  app.stage.addChild(status);
+
+  spawner.spawn();
 
   // Listen for animate update
   app.ticker.add((time) => {
     const moveDir = keys.ArrowUp ? -1 : keys.ArrowDown ? 1 : 0;
     player.sprite.y += moveDir * 10 * time.deltaTime;
     player.update(time.deltaTime);
+    spawner.update(time.deltaTime);
     if (keys.Space) {
       player.shoot();
     }
+    CollisionsManager.instance.update();
   });
 })();
