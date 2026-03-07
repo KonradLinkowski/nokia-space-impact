@@ -1,17 +1,17 @@
 import { Enemy } from './enemy';
-import { getSpritesheet } from '@/spritesheet';
-import { createAnimatedSprite } from '@/sprite';
+import { getTexture } from '@/spritesheet';
 import { Collidable, CollisionsManager } from '@/collisions';
+import { Sprite } from 'pixi.js';
+import { Status } from '@/status';
 
-export class Medusa implements Enemy {
+export class Boss1 implements Enemy {
   id = crypto.randomUUID();
   type = 'enemy' as const;
-  sprite = createAnimatedSprite(getSpritesheet('medusa'));
-  #hp = 2;
+  sprite = new Sprite(getTexture('boss-1'));
+  #hp = 20;
+  #dir = 1;
   #handleDelete: (id: string) => void;
   constructor(onDestroy: (id: string) => void) {
-    this.sprite.animationSpeed = 0.1;
-    this.sprite.play();
     const unregister = CollisionsManager.instance.register(this);
     this.#handleDelete = () => {
       onDestroy(this.id);
@@ -20,21 +20,22 @@ export class Medusa implements Enemy {
   }
 
   collide(wth: Collidable): void {
-    if (wth.type === 'player') {
-      this.#handleDelete(this.id);
-      this.sprite.destroy();
-      return;
-    }
     if (wth.type !== 'bullet') return;
     this.#hp -= 1;
     if (this.#hp <= 0) {
       this.#handleDelete(this.id);
       this.sprite.destroy();
+      Status.instance.gainPoints(100);
     }
   }
 
   update(deltaTime: number): void {
     if (this.sprite.destroyed) return;
-    this.sprite.x -= deltaTime * 0.5;
+    if (this.sprite.y > 25) {
+      this.#dir = -1;
+    } else if (this.sprite.y < 0) {
+      this.#dir = 1;
+    }
+    this.sprite.y += this.#dir * deltaTime * 0.2;
   }
 }

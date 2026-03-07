@@ -1,6 +1,7 @@
 import { Container, Sprite } from 'pixi.js';
 import { getTexture } from '@/spritesheet';
 import { Collidable, CollisionsManager } from './collisions';
+import { Status } from './status';
 
 type DestroyHandler = (id: ReturnType<typeof crypto.randomUUID>) => void;
 
@@ -14,18 +15,28 @@ export class Player implements Collidable {
   #handleDelete: (id: string) => void;
 
   constructor(private scene: Container) {
-    this.sprite.scale.set(16);
-    this.sprite.y += 100;
+    this.scene.addChild(this.sprite);
+    this.sprite.anchor.set(0, 0.5);
     this.#handleDelete = CollisionsManager.instance.register(this);
   }
 
-  update(deltaTime: number) {
+  update(deltaTime: number, keys: Record<string, boolean>) {
+    const moveDir = keys.ArrowUp ? -1 : keys.ArrowDown ? 1 : 0;
+    this.sprite.y += moveDir * 0.5 * deltaTime;
+    if (this.sprite.y < 0) {
+      this.sprite.y = 0;
+    } else if (this.sprite.y > 40) {
+      this.sprite.y = 40;
+    }
+    if (keys.Space) {
+      this.shoot();
+    }
     this.bullets.forEach((v) => v.update(deltaTime));
   }
 
   shoot() {
     const now = performance.now();
-    if (now - this.#lastShotTime > 300) {
+    if (now - this.#lastShotTime > 200) {
       this.#lastShotTime = now;
       this.#shoot();
     }
@@ -37,13 +48,13 @@ export class Player implements Collidable {
       this.bullets.splice(index, 1);
     };
     const bullet = new Bullet(this.scene, handleDestroy);
-    bullet.sprite.x = this.sprite.x + 100;
-    bullet.sprite.y = this.sprite.y;
+    bullet.sprite.x = this.sprite.x + 8;
+    bullet.sprite.y = this.sprite.y - 0.5;
     this.bullets.push(bullet);
   }
 
-  takeDamage() {
-    this.#handleDelete(this.id);
+  collide() {
+    Status.instance.loseHealth(1);
   }
 }
 
@@ -57,16 +68,15 @@ class Bullet implements Collidable {
     private scene: Container,
     private onDestroy: DestroyHandler
   ) {
-    this.sprite.scale.set(16);
     this.scene.addChild(this.sprite);
     this.#handleDelete = CollisionsManager.instance.register(this);
   }
 
   update(deltaTime: number) {
-    this.sprite.x += deltaTime * 10;
+    this.sprite.x += deltaTime * 0.5;
   }
 
-  takeDamage() {
+  collide() {
     this.sprite.destroy();
     this.onDestroy(this.id);
     this.#handleDelete(this.id);

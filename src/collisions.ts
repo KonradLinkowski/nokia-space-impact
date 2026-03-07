@@ -1,13 +1,13 @@
 import { Sprite } from 'pixi.js';
 
+type Type = Collidable['type'];
+
 export type Collidable = {
   id: string;
   sprite: Sprite;
   type: 'player' | 'bullet' | 'enemy';
-  takeDamage(): void;
+  collide(wth: Collidable): void;
 };
-
-type Type = Collidable['type'];
 
 type CollisionHandler = (a: Collidable, b: Collidable) => void;
 
@@ -16,15 +16,15 @@ const collisionMatrix: Record<Type, Partial<Record<Type, CollisionHandler>>> = {
   bullet: {
     bullet: noop,
     enemy: (bullet, enemy) => {
-      bullet.takeDamage();
-      enemy.takeDamage();
+      bullet.collide(enemy);
+      enemy.collide(bullet);
     },
     player: noop,
   },
   enemy: {
     player: (enemy, player) => {
-      enemy.takeDamage();
-      player.takeDamage();
+      enemy.collide(player);
+      player.collide(enemy);
     },
   },
   player: {},

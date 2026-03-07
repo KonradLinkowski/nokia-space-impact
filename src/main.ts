@@ -1,10 +1,12 @@
-import { Application, ColorMatrixFilter } from 'pixi.js';
+import { Application, ColorMatrixFilter, Container, Sprite } from 'pixi.js';
 import { bindKeyboard } from './keyboard';
 import { Status } from './status';
-import { preload } from './spritesheet';
+import { getTexture, preload } from './spritesheet';
 import { Player } from './player';
 import { EnemySpawner } from './enemies/enemy';
 import { CollisionsManager } from './collisions';
+
+const PLAYABLE_AREA_HEIGHT = 50;
 
 (async () => {
   // Create a new application
@@ -15,38 +17,45 @@ import { CollisionsManager } from './collisions';
   filter.matrix = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0];
 
   app.stage.filters = [filter];
-
   await preload();
 
-  const status = new Status(app.stage);
+  Status.instance.init(app.stage);
 
-  status.loseHealth(1);
+  const gameContainer = new Container();
+  gameContainer.scale.set(16);
 
-  const player = new Player(app.stage);
+  app.stage.addChild(gameContainer);
+  gameContainer.y = 200;
 
-  const spawner = new EnemySpawner(app.stage);
+  const bg = new Sprite(getTexture('level-1'));
+  bg.y = PLAYABLE_AREA_HEIGHT - bg.height;
+  gameContainer.addChild(bg);
+
+  const player = new Player(gameContainer);
+  console.log(player.sprite.y);
+
+  const spawner = new EnemySpawner(gameContainer);
 
   const keys = bindKeyboard();
 
+  const htmlContainer = document.getElementById('pixi-container')!;
+
   // Initialize the application
-  await app.init({ background: 'black', resizeTo: window });
+  await app.init({
+    background: 'black',
+    width: 1500,
+    height: 1000,
+    antialias: false,
+  });
 
   // Append the application canvas to the document body
-  document.getElementById('pixi-container')!.appendChild(app.canvas);
-
-  app.stage.addChild(player.sprite);
-
-  spawner.spawn();
+  htmlContainer.appendChild(app.canvas);
 
   // Listen for animate update
   app.ticker.add((time) => {
-    const moveDir = keys.ArrowUp ? -1 : keys.ArrowDown ? 1 : 0;
-    player.sprite.y += moveDir * 10 * time.deltaTime;
-    player.update(time.deltaTime);
+    player.update(time.deltaTime, keys);
     spawner.update(time.deltaTime);
-    if (keys.Space) {
-      player.shoot();
-    }
+
     CollisionsManager.instance.update();
   });
 })();
