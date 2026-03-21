@@ -23,7 +23,7 @@ export class EnemySpawner {
     this.#spawnTimer += deltaTime;
     if (!this.#isBossSpawned && this.#spawnTimer > 200) {
       this.#spawnTimer = 0;
-      if (this.#spawnCounter === 1) {
+      if (this.#spawnCounter === 5) {
         this.#spawnCounter = 0;
         this.spawnBoss();
       } else {

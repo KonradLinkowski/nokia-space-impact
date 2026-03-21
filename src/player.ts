@@ -2,6 +2,7 @@ import { Container, Sprite } from 'pixi.js';
 import { getTexture } from '@/spritesheet';
 import { Collidable, CollisionsManager } from './collisions';
 import { Status } from './status';
+import { sound } from '@pixi/sound';
 
 type DestroyHandler = (id: ReturnType<typeof crypto.randomUUID>) => void;
 
@@ -51,6 +52,8 @@ export class Player implements Collidable {
     bullet.sprite.x = this.sprite.x + 8;
     bullet.sprite.y = this.sprite.y - 0.5;
     this.bullets.push(bullet);
+    const soundIndex = Math.floor(Math.random() * 5);
+    sound.play(`bullet${soundIndex}`);
   }
 
   collide() {
@@ -66,7 +69,7 @@ class Bullet implements Collidable {
 
   constructor(
     private scene: Container,
-    private onDestroy: DestroyHandler
+    private onDestroy: DestroyHandler,
   ) {
     this.scene.addChild(this.sprite);
     this.#handleDelete = CollisionsManager.instance.register(this);

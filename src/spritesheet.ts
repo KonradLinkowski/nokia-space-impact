@@ -1,4 +1,5 @@
 import { Assets, Texture, type Spritesheet } from 'pixi.js';
+import { sound } from '@pixi/sound';
 
 const assets = {
   player: 'texture',
@@ -22,6 +23,11 @@ export async function preload() {
           : `/assets/${alias}/sprite.json`,
     })),
   ]);
+
+  for (let i = 0; i < 5; i += 1) {
+    sound.add(`bullet${i}`, `/assets/bullet/bullet${i}.ogg`);
+  }
+  sound.add('boom', '/assets/boom.ogg');
 }
 
 export function getTexture(name: AssetName) {

@@ -31,6 +31,7 @@ const collisionMatrix: Record<Type, Partial<Record<Type, CollisionHandler>>> = {
 };
 
 export function areColliding(a: Collidable, b: Collidable) {
+  if (a.sprite.destroyed || b.sprite.destroyed) return false;
   const aBounds = a.sprite.getBounds();
   const bBounds = b.sprite.getBounds();
 
@@ -60,7 +61,7 @@ export class CollisionsManager {
         if (a === b) continue;
         if (!areColliding(a, b)) continue;
         const [sortedA, sortedB] = [a, b].sort((a, b) =>
-          a.type.localeCompare(b.type)
+          a.type.localeCompare(b.type),
         );
         collisionMatrix[sortedA.type][sortedB.type]?.(sortedA, sortedB);
       }

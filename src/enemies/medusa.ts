@@ -2,6 +2,8 @@ import { Enemy } from './enemy';
 import { getSpritesheet } from '@/spritesheet';
 import { createAnimatedSprite } from '@/sprite';
 import { Collidable, CollisionsManager } from '@/collisions';
+import { sound } from '@pixi/sound';
+import { Status } from '@/status';
 
 export class Medusa implements Enemy {
   id = crypto.randomUUID();
@@ -14,6 +16,8 @@ export class Medusa implements Enemy {
     this.sprite.play();
     const unregister = CollisionsManager.instance.register(this);
     this.#handleDelete = () => {
+      Status.instance.gainPoints(10);
+      sound.play('boom');
       onDestroy(this.id);
       unregister(this.id);
     };
