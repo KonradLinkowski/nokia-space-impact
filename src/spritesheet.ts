@@ -14,20 +14,20 @@ type AssetName = keyof typeof assets;
 
 export async function preload() {
   await Assets.load([
-    { alias: 'font', src: '/assets/font.otf' },
+    { alias: 'font', src: './assets/font.otf' },
     ...Object.entries(assets).map(([alias, type]) => ({
       alias,
       src:
         type === 'texture'
-          ? `/assets/${alias}.png`
-          : `/assets/${alias}/sprite.json`,
+          ? `./assets/${alias}.png`
+          : `./assets/${alias}/sprite.json`,
     })),
   ]);
 
   for (let i = 0; i < 5; i += 1) {
-    sound.add(`bullet${i}`, `/assets/bullet/bullet${i}.ogg`);
+    sound.add(`bullet${i}`, `./assets/bullet/bullet${i}.ogg`);
   }
-  sound.add('boom', '/assets/boom.ogg');
+  sound.add('boom', `./assets/boom.ogg`);
 }
 
 export function getTexture(name: AssetName) {
