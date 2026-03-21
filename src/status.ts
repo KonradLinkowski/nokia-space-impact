@@ -9,7 +9,7 @@ const style = {
 };
 
 export class Status {
-  #hp = 3;
+  hp = 3;
   #heartsText = new Text({
     text: '@@@',
 
@@ -58,12 +58,12 @@ export class Status {
   }
 
   loseHealth(damage: number) {
-    this.#hp -= damage;
+    this.hp -= damage;
     this.#renderHealth();
   }
 
   #renderHealth() {
-    this.#heartsText.text = '@'.repeat(this.#hp);
+    this.#heartsText.text = '@'.repeat(this.hp);
   }
 
   #renderScore() {

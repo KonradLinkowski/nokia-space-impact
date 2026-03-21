@@ -58,6 +58,10 @@ export class Player implements Collidable {
 
   collide() {
     Status.instance.loseHealth(1);
+    if (Status.instance.hp <= 0) {
+      this.sprite.destroy();
+      this.#handleDelete(this.id);
+    }
   }
 }
 
